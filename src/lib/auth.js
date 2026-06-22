@@ -1,12 +1,17 @@
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import dns from 'dns';
+// import dns from 'dns';
 
-// 💡 Node.js 18+ এর 'querySrv ECONNREFUSED' এরর ফিক্স
-dns.setDefaultResultOrder('ipv4first');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+// // 💡 Node.js 18+ এর 'querySrv ECONNREFUSED' এরর ফিক্স
+// dns.setDefaultResultOrder('ipv4first');
+// dns.setServers(['8.8.8.8', '1.1.1.1']);
+const dns = require('dns');
 
+dns.setServers([
+  "8.8.8.8",
+  "1.1.1.1"
+]);
 const uri = process.env.MONGODB_URI;
 
 if (!uri) {

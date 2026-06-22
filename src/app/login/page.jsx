@@ -31,6 +31,19 @@ export default function LoginPage() {
         return;
       }
 
+      // Express backend এর জন্য JWT token নেওয়া
+      try {
+        const tokenRes = await fetch('/api/get-token');
+        if (tokenRes.ok) {
+          const tokenData = await tokenRes.json();
+          if (tokenData.token) {
+            localStorage.setItem('token', tokenData.token);
+          }
+        }
+      } catch (err) {
+        console.error('Express Token fetch failed:', err);
+      }
+
       router.push("/dashboard");
     } catch (err) {
       setErrorMsg("Something went wrong. Please try again.");

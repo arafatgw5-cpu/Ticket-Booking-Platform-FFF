@@ -14,6 +14,10 @@ export default function BookModal({ ticket, onClose }) {
 
     const handleBooking = async (e) => {
         e.preventDefault();
+        if (user?.role === 'vendor' || user?.role === 'admin') {
+            toast.error('Vendors and Admins cannot book tickets');
+            return;
+        }
         if (quantity > ticket.quantity) {
             toast.error('Not enough tickets available');
             return;

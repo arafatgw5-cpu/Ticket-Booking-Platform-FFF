@@ -50,8 +50,14 @@ export default function TicketDetailsPage() {
             router.push('/login');
             return;
         }
+        if (user.role === 'vendor' || user.role === 'admin') {
+            toast.error('Vendors and Admins cannot book tickets');
+            return;
+        }
         setIsModalOpen(true);
     };
+
+    const isVendorOrAdmin = user?.role === 'vendor' || user?.role === 'admin';
 
     if (isLoading) return <div className="text-center py-20">Loading...</div>;
     if (!ticket) return <div className="text-center py-20">Ticket not found</div>;
@@ -137,10 +143,10 @@ export default function TicketDetailsPage() {
                     <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
                         <button 
                             onClick={handleBookNow} 
-                            disabled={isExpired || ticket.quantity === 0} 
+                            disabled={isExpired || ticket.quantity === 0 || isVendorOrAdmin} 
                             className="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-1 disabled:from-slate-400 disabled:to-slate-500 disabled:hover:transform-none disabled:hover:shadow-none disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
                         >
-                            {isExpired ? 'DEPARTURE PASSED' : ticket.quantity === 0 ? 'SOLD OUT' : 'BOOK TICKET NOW'}
+                            {isVendorOrAdmin ? 'BOOKING NOT AVAILABLE FOR YOUR ROLE' : isExpired ? 'DEPARTURE PASSED' : ticket.quantity === 0 ? 'SOLD OUT' : 'BOOK TICKET NOW'}
                         </button>
                     </div>
                 </div>

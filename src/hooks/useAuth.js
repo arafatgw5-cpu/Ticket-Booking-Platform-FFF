@@ -9,7 +9,7 @@ export default function useAuth() {
 
     useEffect(() => {
         const fetchToken = async () => {
-            if (session?.user && !localStorage.getItem('token')) {
+            if (session?.user) {
                 try {
                     const res = await fetch('/api/get-token');
                     if (res.ok) {
@@ -21,6 +21,8 @@ export default function useAuth() {
                 } catch (error) {
                     console.error('Failed to fetch JWT token:', error);
                 }
+            } else {
+                localStorage.removeItem('token');
             }
         };
 

@@ -1,36 +1,36 @@
 'use client';
-import { useSession } from '@/lib/auth-client';
+import useAuth from '@/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import { FaBars } from 'react-icons/fa';
 
 export default function DashboardLayout({ children }) {
-    const { data: session, isPending } = useSession();
+    const { user, isLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
-        if (!isPending && !session?.user) {
+        if (!isLoading && !user) {
             router.push('/login');
         }
-    }, [session, isPending, router]);
+    }, [user, isLoading, router]);
 
     // Close sidebar on mobile when navigating
     useEffect(() => {
         setIsSidebarOpen(false);
     }, [pathname]);
 
-    if (isPending) {
+    if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
     }
 
-    if (!session?.user) return null;
+    if (!user) return null;
 
     return (
         <div className="flex min-h-screen">
-            <Sidebar role={session.user.role} pathname={pathname} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            <Sidebar role={user.role} pathname={pathname} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
             <main className="flex-1 p-4 md:p-6 bg-slate-50 dark:bg-slate-950 overflow-x-hidden min-w-0">
                 <div className="md:hidden flex items-center mb-6">
                     <button 

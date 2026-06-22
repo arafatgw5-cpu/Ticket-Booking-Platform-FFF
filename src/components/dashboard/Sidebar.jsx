@@ -10,8 +10,6 @@ const userLinks = [
 
 const vendorLinks = [
     { href: '/dashboard/profile', label: 'Profile', icon: FaUser },
-    { href: '/dashboard/bookings', label: 'My Bookings', icon: FaTicketAlt },
-    { href: '/dashboard/transactions', label: 'Transactions', icon: FaHistory },
     { href: '/dashboard/vendor/add-ticket', label: 'Add Ticket', icon: FaPlus },
     { href: '/dashboard/vendor/my-tickets', label: 'My Tickets', icon: FaList },
     { href: '/dashboard/vendor/requests', label: 'Requests', icon: FaEnvelope },
@@ -20,8 +18,6 @@ const vendorLinks = [
 
 const adminLinks = [
     { href: '/dashboard/profile', label: 'Profile', icon: FaUser },
-    { href: '/dashboard/bookings', label: 'My Bookings', icon: FaTicketAlt },
-    { href: '/dashboard/transactions', label: 'Transactions', icon: FaHistory },
     { href: '/dashboard/admin/manage-users', label: 'Manage Users', icon: FaUsers },
     { href: '/dashboard/admin/manage-tickets', label: 'Manage Tickets', icon: FaTicketAlt },
     { href: '/dashboard/admin/advertise', label: 'Advertise', icon: FaAd },
