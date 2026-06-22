@@ -22,93 +22,159 @@ export default function ManageTicketsPage() {
             toast.success('Ticket verification status updated');
             queryClient.invalidateQueries(['admin-tickets']);
         },
-        onError: () => {
-            toast.error('Failed to update ticket status');
-        }
+        onError: () => toast.error('Failed to update ticket status')
     });
 
-    const handleVerify = (id, status) => {
-        verifyMutation.mutate({ id, status });
-    };
+    const handleVerify = (id, status) => verifyMutation.mutate({ id, status });
 
-    if (isLoading) return <div className="text-center py-20">Loading tickets...</div>;
+    const initials = (title) =>
+        title.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+    if (isLoading) return (
+        <div className="flex items-center justify-center py-24 text-sm text-slate-500 dark:text-slate-400">
+            Loading tickets...
+        </div>
+    );
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-            <div className="flex items-center justify-between mb-10">
-                <div>
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                        Manage <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-400">Tickets</span>
-                    </h1>
-                    <p className="mt-2 text-slate-500 dark:text-slate-400">Review, approve, or reject vendor tickets.</p>
-                </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+            {/* Header */}
+            <div className="mb-6">
+                <h1 className="text-xl sm:text-2xl font-medium text-slate-900 dark:text-white">
+                    Manage <span className="text-indigo-500 dark:text-indigo-400">Tickets</span>
+                </h1>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Review, approve, or reject vendor tickets.
+                </p>
             </div>
-            
-            <div className="glass-card rounded-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-white/10 dark:from-slate-900/50 dark:to-slate-900/10 pointer-events-none"></div>
-                
-                <div className="overflow-x-auto relative z-10">
-                    <table className="w-full text-left whitespace-nowrap">
-                        <thead className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700">
+
+            {/* Table Card */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-hidden">
+                {/* Scrollable wrapper — fixes horizontal overflow on mobile */}
+                <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse" style={{ minWidth: '580px' }}>
+                        <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700/60">
                             <tr>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Ticket Title & Route</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Vendor Email</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Price & Qty</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Status</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase text-right">Actions</th>
+                                {[
+                                    { label: 'Ticket title & route', align: '' },
+                                    { label: 'Vendor email', align: '' },
+                                    { label: 'Price & qty', align: '' },
+                                    { label: 'Status', align: '' },
+                                    { label: 'Actions', align: 'text-right' },
+                                ].map(({ label, align }) => (
+                                    <th
+                                        key={label}
+                                        className={`px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap ${align}`}
+                                    >
+                                        {label}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {tickets?.map((ticket) => (
-                                <tr key={ticket._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors duration-200">
-                                    <td className="px-6 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <img src={ticket.image} alt={ticket.title} className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-base">{ticket.title}</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{ticket.from} <span className="text-blue-400 mx-1">→</span> {ticket.to}</p>
+                                <tr
+                                    key={ticket._id}
+                                    className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors duration-150"
+                                >
+                                    {/* Ticket */}
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2.5">
+                                            {ticket.image ? (
+                                                <img
+                                                    src={ticket.image}
+                                                    alt={ticket.title}
+                                                    className="w-9 h-9 rounded-lg object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0"
+                                                />
+                                            ) : (
+                                                <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex-shrink-0 flex items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                    {initials(ticket.title)}
+                                                </div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[160px] sm:max-w-[200px]">
+                                                    {ticket.title}
+                                                </p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    {ticket.from}
+                                                    <span className="mx-1 text-blue-400">→</span>
+                                                    {ticket.to}
+                                                </p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 text-sm font-medium text-slate-600 dark:text-slate-400">{ticket.vendorEmail}</td>
-                                    <td className="px-6 py-5">
-                                        <p className="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500 mb-0.5">${ticket.price}</p>
-                                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-wide uppercase">Qty: {ticket.quantity}</p>
+
+                                    {/* Vendor */}
+                                    <td className="px-4 py-3 max-w-[160px]">
+                                        <span
+                                            className="text-xs text-slate-500 dark:text-slate-400 block truncate"
+                                            title={ticket.vendorEmail}
+                                        >
+                                            {ticket.vendorEmail}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-5">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm border ${
-                                            ticket.verificationStatus === 'approved' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50' :
-                                            ticket.verificationStatus === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50' :
-                                            'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/50'
+
+                                    {/* Price */}
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                                            ৳{ticket.price.toLocaleString()}
+                                        </p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-wide">
+                                            Qty: {ticket.quantity}
+                                        </p>
+                                    </td>
+
+                                    {/* Status */}
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+                                            ticket.verificationStatus === 'approved'
+                                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
+                                                : ticket.verificationStatus === 'rejected'
+                                                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/40'
+                                                : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40'
                                         }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${
+                                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                                                 ticket.verificationStatus === 'approved' ? 'bg-emerald-500' :
                                                 ticket.verificationStatus === 'rejected' ? 'bg-red-500' :
                                                 'bg-amber-500 animate-pulse'
-                                            }`}></span>
+                                            }`} />
                                             {ticket.verificationStatus}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-5 text-right space-x-3">
-                                        {ticket.verificationStatus === 'pending' && (
-                                            <>
-                                                <button 
+
+                                    {/* Actions */}
+                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                        {ticket.verificationStatus === 'pending' ? (
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
                                                     onClick={() => handleVerify(ticket._id, 'approved')}
-                                                    className="px-4 py-2 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all shadow-sm hover:shadow active:scale-95"
+                                                    disabled={verifyMutation.isPending}
+                                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Approve
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleVerify(ticket._id, 'rejected')}
-                                                    className="px-4 py-2 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-all shadow-sm hover:shadow active:scale-95"
+                                                    disabled={verifyMutation.isPending}
+                                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Reject
                                                 </button>
-                                            </>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 dark:text-slate-600">—</span>
                                         )}
                                     </td>
                                 </tr>
                             ))}
+
+                            {tickets?.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                                        No tickets found.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

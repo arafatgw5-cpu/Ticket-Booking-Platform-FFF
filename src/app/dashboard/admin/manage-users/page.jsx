@@ -22,9 +22,7 @@ export default function ManageUsersPage() {
             toast.success('User role updated');
             queryClient.invalidateQueries(['admin-users']);
         },
-        onError: () => {
-            toast.error('Failed to update role');
-        }
+        onError: () => toast.error('Failed to update role')
     });
 
     const fraudMutation = useMutation({
@@ -32,120 +30,132 @@ export default function ManageUsersPage() {
             await axiosInstance.patch(`/users/fraud/${id}`);
         },
         onSuccess: () => {
-            toast.success('Vendor marked as fraud. Their tickets are now hidden/rejected.');
+            toast.success('Vendor marked as fraud.');
             queryClient.invalidateQueries(['admin-users']);
         },
-        onError: () => {
-            toast.error('Failed to mark fraud');
-        }
+        onError: () => toast.error('Failed to mark fraud')
     });
 
     const handleRoleChange = (id, role) => {
-        if (confirm(`Are you sure you want to make this user an ${role}?`)) {
-            roleMutation.mutate({ id, role });
-        }
+        if (confirm(`Make this user a ${role}?`)) roleMutation.mutate({ id, role });
     };
 
     const handleMarkFraud = (id) => {
-        if (confirm('Are you sure you want to mark this vendor as fraud? This action cannot be undone and will hide all their tickets.')) {
-            fraudMutation.mutate(id);
-        }
+        if (confirm('Mark this vendor as fraud? This cannot be undone.')) fraudMutation.mutate(id);
     };
 
-    if (isLoading) return <div className="text-center py-20">Loading users...</div>;
+    if (isLoading) return (
+        <div className="flex items-center justify-center py-24 text-sm text-slate-500 dark:text-slate-400">
+            Loading users...
+        </div>
+    );
 
-    
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-            <div className="flex items-center justify-between mb-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            {/* Header */}
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-8">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                        Manage <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-400">Users</span>
+                    <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                        Manage <span className="text-indigo-600 dark:text-indigo-400">Users</span>
                     </h1>
-                    <p className="mt-2 text-slate-500 dark:text-slate-400">Control roles, permissions, and security across the platform.</p>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Control roles, permissions, and security across the platform.
+                    </p>
                 </div>
-                <div className="hidden sm:block">
-                    <span className="px-4 py-2 rounded-full glass bg-blue-50/50 dark:bg-slate-800/50 text-sm font-semibold text-blue-700 dark:text-blue-300 shadow-sm border border-blue-100 dark:border-slate-700">
-                        Total Users: {users?.length || 0}
-                    </span>
-                </div>
+                <span className="px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    Total Users: {users?.length ?? 0}
+                </span>
             </div>
 
-            <div className="glass-card rounded-2xl overflow-hidden border border-slate-200/60 dark:border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-white/10 dark:from-slate-900/50 dark:to-slate-900/10 pointer-events-none"></div>
-                
-                <div className="overflow-x-auto relative z-10">
-                    <table className="w-full text-left whitespace-nowrap">
-                        <thead className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700">
+            {/* Table Card */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left" style={{ minWidth: '560px' }}>
+                        <thead className="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700">
                             <tr>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">User</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Role</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase">Status</th>
-                                <th className="px-6 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 tracking-wider uppercase text-right">Actions</th>
+                                {['User', 'Role', 'Status', 'Actions'].map((h, i) => (
+                                    <th key={h} className={`px-5 py-3.5 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 ${i === 3 ? 'text-right' : ''}`}>
+                                        {h}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {users?.map((user) => (
-                                <tr key={user._id} className="hover:bg-blue-50/30 dark:hover:bg-slate-800/30 transition-colors duration-200">
-                                    <td className="px-6 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <img src={user.image || 'https://i.pravatar.cc/150'} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm" />
-                                                {user.isFraud && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" title="Fraudulent User"></div>}
+                                <tr key={user._id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                                    {/* User */}
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative flex-shrink-0">
+                                                <img
+                                                    src={user.image || 'https://i.pravatar.cc/150'}
+                                                    alt={user.name}
+                                                    className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                                                />
+                                                {user.isFraud && (
+                                                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
+                                                )}
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-base">{user.name}</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{user.email}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm border ${
-                                            user.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50' :
-                                            user.role === 'vendor' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/50' :
-                                            'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                                    {/* Role */}
+                                    <td className="px-5 py-4">
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                            user.role === 'admin'
+                                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/40'
+                                                : user.role === 'vendor'
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/40'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                                         }`}>
                                             {user.role || 'user'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    {/* Status */}
+                                    <td className="px-5 py-4">
                                         {user.isFraud ? (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider border border-red-200 dark:border-red-800/50 shadow-sm">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/40">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                                                 Fraud
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-bold uppercase tracking-wider border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                 Active
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-5 text-right space-x-3">
-                                        {user.role !== 'admin' && (
-                                            <button 
-                                                onClick={() => handleRoleChange(user._id, 'admin')}
-                                                className="px-4 py-2 bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800 transition-all shadow-sm hover:shadow active:scale-95"
-                                            >
-                                                Make Admin
-                                            </button>
-                                        )}
-                                        {user.role !== 'vendor' && user.role !== 'admin' && (
-                                            <button 
-                                                onClick={() => handleRoleChange(user._id, 'vendor')}
-                                                className="px-4 py-2 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-all shadow-sm hover:shadow active:scale-95"
-                                            >
-                                                Make Vendor
-                                            </button>
-                                        )}
-                                        {user.role === 'vendor' && !user.isFraud && (
-                                            <button 
-                                                onClick={() => handleMarkFraud(user._id)}
-                                                className="px-4 py-2 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 transition-all shadow-sm hover:shadow active:scale-95"
-                                            >
-                                                Mark Fraud
-                                            </button>
-                                        )}
+                                    {/* Actions */}
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                                            {user.role !== 'admin' && (
+                                                <button
+                                                    onClick={() => handleRoleChange(user._id, 'admin')}
+                                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all active:scale-95"
+                                                >
+                                                    Make Admin
+                                                </button>
+                                            )}
+                                            {user.role !== 'vendor' && user.role !== 'admin' && (
+                                                <button
+                                                    onClick={() => handleRoleChange(user._id, 'vendor')}
+                                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-700 transition-all active:scale-95"
+                                                >
+                                                    Make Vendor
+                                                </button>
+                                            )}
+                                            {user.role === 'vendor' && !user.isFraud && (
+                                                <button
+                                                    onClick={() => handleMarkFraud(user._id)}
+                                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700 transition-all active:scale-95"
+                                                >
+                                                    Mark Fraud
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
