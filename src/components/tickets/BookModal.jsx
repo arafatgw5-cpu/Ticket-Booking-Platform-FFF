@@ -5,7 +5,9 @@ import useAuth from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { FaTimes } from 'react-icons/fa';
-
+export const metadata = {
+    title: 'Book Ticket | TicketBari'
+};
 export default function BookModal({ ticket, onClose }) {
     const { user } = useAuth();
     const router = useRouter();

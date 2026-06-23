@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎟️ Ticket Bari
 
-## Getting Started
+A modern online ticket booking platform where users can browse, search, and book tickets for buses, trains, flights, and launches. Vendors can manage their own tickets, while admins control the entire platform through a dedicated dashboard.
 
-First, run the development server:
+## 🌐 Live Website
+
+https://a-fff.vercel.app
+
+## 🚀 Features
+
+### 🔐 Authentication & Authorization
+
+* JWT Authentication
+* Secure Login & Registration
+* Role-Based Access Control (User, Vendor, Admin)
+* Protected Routes
+
+### 👤 User Features
+
+* Browse Available Tickets
+* Search Tickets by Route
+* View Ticket Details
+* Book Tickets Online
+* Stripe Payment Integration
+* View Booking History
+* Manage Personal Profile
+
+### 🏢 Vendor Features
+
+* Vendor Dashboard
+* Add New Tickets
+* Update Ticket Information
+* Delete Tickets
+* Manage Own Listings
+* View Ticket Statistics
+
+### 🛠️ Admin Features
+
+* Manage All Users
+* Manage All Vendors
+* Approve or Control Vendor Activities
+* Monitor Platform Statistics
+* Manage Tickets Across the Platform
+
+### 💳 Payment System
+
+* Stripe Payment Gateway
+* Secure Online Transactions
+* Booking Confirmation After Successful Payment
+
+### 📊 Dashboard
+
+* User Dashboard
+* Vendor Dashboard
+* Admin Dashboard
+* Dynamic Statistics & Management Panels
+
+## 🧰 Technologies Used
+
+### Frontend
+
+* Next.js
+* React
+* Tailwind CSS
+* HeroUI
+* Axios
+* TanStack Query
+
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* JWT
+* Cookie Parser
+
+### Payment
+
+* Stripe
+
+### Deployment
+
+* Vercel (Frontend)
+* Vercel/Node Server (Backend)
+
+## 📦 NPM Packages
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+@heroui/react
+@stripe/react-stripe-js
+@stripe/stripe-js
+@tanstack/react-query
+axios
+react-hook-form
+sweetalert2
+jsonwebtoken
+cookie-parser
+cors
+dotenv
+mongodb
+stripe
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔑 Environment Variables
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Frontend
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_URL=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+```
 
-## Learn More
+### Backend
 
-To learn more about Next.js, take a look at the following resources:
+```env
+PORT=
+DB_USER=
+DB_PASS=
+JWT_SECRET=
+STRIPE_SECRET_KEY=
+CLIENT_URL=
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+src/
+├── app/
+├── components/
+├── hooks/
+├── providers/
+├── services/
+├── utils/
+└── layouts/
+```
 
-## Deploy on Vercel
+## 🎯 Main Functionalities
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* User Registration & Login
+* Role-Based Authorization
+* Ticket Management
+* Ticket Booking
+* Secure Payments
+* Dashboard Management
+* Vendor Management
+* Admin Controls
+* Responsive Design
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 👨‍💻 Developer
+
+Developed by Easin
+
+## 📜 License
+
+This project is created for educational and portfolio purposes.
