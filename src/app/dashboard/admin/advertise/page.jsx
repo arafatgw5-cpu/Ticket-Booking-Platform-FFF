@@ -31,7 +31,7 @@ export default function AdvertiseTicketsPage() {
         advertiseMutation.mutate({ id, isAdvertised: !currentStatus });
     };
 
-    if (isLoading) return <div className="text-center py-20 text-slate-500">Loading tickets...</div>;
+    if (isLoading) return <div className="text-center py-20 text-slate-400">Loading tickets...</div>;
 
     const approvedTickets = tickets?.filter(t => t.verificationStatus === 'approved') || [];
 
