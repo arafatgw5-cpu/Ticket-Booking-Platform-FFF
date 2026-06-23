@@ -8,11 +8,11 @@ export default function Countdown({ departure }) {
       new Date(departure) - new Date();
 
     if (difference <= 0) return "Expired";
-
+// Calculate time left
     const days = Math.floor(
       difference / (1000 * 60 * 60 * 24)
     );
-
+// Calculate hours left
     const hours = Math.floor(
       (difference / (1000 * 60 * 60)) % 24
     );
