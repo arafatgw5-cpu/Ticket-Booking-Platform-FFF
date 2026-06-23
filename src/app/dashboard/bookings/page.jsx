@@ -3,60 +3,14 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
 import { useSession } from '@/lib/auth-client';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { toast } from 'sonner';
-import { FaTimes } from 'react-icons/fa';
 
 import Countdown from '@/components/Countdown';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
-const CheckoutForm = ({ booking, clientSecret, onSuccess, onCancel }) => {
-    const stripe = useStripe();
-    const elements = useElements();
-    const [loading, setLoading] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!stripe || !elements) return;
-
-        setLoading(true);
-        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-                card: elements.getElement(CardElement),
-                billing_details: { name: booking.userName, email: booking.userEmail }
-            }
-        });
-
-        if (error) {
-            toast.error(error.message);
-            setLoading(false);
-        } else if (paymentIntent.status === 'succeeded') {
-            onSuccess(paymentIntent.id);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
-                <CardElement options={{ style: { base: { fontSize: '16px', color: '#94a3b8', '::placeholder': { color: '#64748b' } } } }} />
-            </div>
-            <div className="flex gap-4">
-                <button type="button" onClick={onCancel} className="flex-1 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancel</button>
-                <button type="submit" disabled={!stripe || loading} className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 disabled:opacity-50 transition-all">
-                    {loading ? 'Processing...' : 'Pay Now'}
-                </button>
-            </div>
-        </form>
-    );
-};
 
 export default function BookingsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
-    const [paymentBooking, setPaymentBooking] = useState(null);
-    const [clientSecret, setClientSecret] = useState('');
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     const { data: bookings, isLoading } = useQuery({
         queryKey: ['bookings', session?.user?.email],
@@ -69,30 +23,40 @@ export default function BookingsPage() {
 
     const handlePaymentClick = async (booking) => {
         try {
-            const { data } = await axiosInstance.post('/create-payment-intent', { price: booking.totalPrice });
-            setClientSecret(data.clientSecret);
-            setPaymentBooking(booking);
-        } catch (error) {
-            console.error('Payment intent error:', error.response?.data || error.message);
-            toast.error(error.response?.data?.message || 'Failed to initialize payment');
-        }
-    };
-
-    const handlePaymentSuccess = async (transactionId) => {
-        try {
-            await axiosInstance.post('/save-payment', {
-                bookingId: paymentBooking._id,
-                transactionId: transactionId,
-                amount: paymentBooking.totalPrice,
-                ticketTitle: paymentBooking.ticketTitle,
-                userEmail: paymentBooking.userEmail
+            setIsRedirecting(true);
+            toast.loading('Redirecting to checkout...', { id: 'checkout' });
+            
+            // Calling the internal Next.js App Router API route
+            const res = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    price: booking.totalPrice,
+                    title: booking.ticketTitle,
+                    bookingId: booking._id
+                })
             });
-            toast.success('Payment successful!');
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
-            setPaymentBooking(null);
-            setClientSecret('');
+
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error("API returned non-JSON response:", text);
+                throw new Error('API returned an invalid response. Please check server logs or restart the development server.');
+            }
+            
+            if (res.ok && data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || 'Failed to create checkout session');
+            }
         } catch (error) {
-            toast.error('Failed to save payment record');
+            console.error('Payment intent error:', error);
+            toast.error(error.message || 'Failed to initialize payment', { id: 'checkout' });
+            setIsRedirecting(false);
         }
     };
 
@@ -154,8 +118,8 @@ export default function BookingsPage() {
                                     </div>
 
                                     {booking.status === 'accepted' && !isExpired && (
-                                        <button onClick={() => handlePaymentClick(booking)} className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all">
-                                            Pay Now
+                                        <button onClick={() => handlePaymentClick(booking)} disabled={isRedirecting} className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none transition-all">
+                                            {isRedirecting ? 'Processing...' : 'Pay Now'}
                                         </button>
                                     )}
                                     {booking.status === 'rejected' && <p className="text-center text-red-500 dark:text-red-400 font-bold text-sm">Booking Rejected</p>}
@@ -167,26 +131,7 @@ export default function BookingsPage() {
                 </div>
             )}
 
-            {/* Payment Modal */}
-            {paymentBooking && clientSecret && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="glass-card bg-white/95 dark:bg-slate-900/95 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] max-w-md w-full p-8 border border-slate-200/60 dark:border-slate-800 relative">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Complete Payment</h2>
-                            <button onClick={() => setPaymentBooking(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"><FaTimes /></button>
-                        </div>
-                        <p className="mb-6 text-slate-600 dark:text-slate-400">Total: <span className="font-black text-xl text-emerald-600 dark:text-emerald-400">${paymentBooking.totalPrice}</span></p>
-                        <Elements stripe={stripePromise} options={{ clientSecret }}>
-                            <CheckoutForm 
-                                booking={paymentBooking} 
-                                clientSecret={clientSecret}
-                                onSuccess={handlePaymentSuccess} 
-                                onCancel={() => setPaymentBooking(null)} 
-                            />
-                        </Elements>
-                    </div>
-                </div>
-            )}
+            {/* Payment is now handled via Stripe Hosted Checkout */}
         </div>
     );
 }
